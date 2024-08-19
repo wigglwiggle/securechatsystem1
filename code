@@ -1,0 +1,143 @@
+import tkinter as tk
+from tkinter import scrolledtext, messagebox
+import random
+
+class SecureChatApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Secure Chat App")
+        self.root.geometry("500x600")
+        self.root.configure(bg="#282c34")
+
+        # Initialize login screen
+        self.login_frame = tk.Frame(self.root, bg="#282c34")
+        self.login_frame.pack(fill="both", expand=True)
+
+        self.username_label = tk.Label(self.login_frame, text="Username", font=("Helvetica", 14), bg="#282c34", fg="#ffffff")
+        self.username_label.pack(pady=5)
+        self.username_entry = tk.Entry(self.login_frame, font=("Helvetica", 14), bg="#1e1e1e", fg="#ffffff")
+        self.username_entry.pack(pady=5)
+
+        self.password_label = tk.Label(self.login_frame, text="Password", font=("Helvetica", 14), bg="#282c34", fg="#ffffff")
+        self.password_label.pack(pady=5)
+        self.password_entry = tk.Entry(self.login_frame, show="*", font=("Helvetica", 14), bg="#1e1e1e", fg="#ffffff")
+        self.password_entry.pack(pady=5)
+
+        self.login_button = tk.Button(self.login_frame, text="Login", command=self.login, font=("Helvetica", 14, "bold"), bg="#e06c75", fg="#ffffff")
+        self.login_button.pack(pady=10)
+
+        self.chat_frame = None
+
+    def login(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if self.validate_credentials(username, password):
+            self.login_frame.pack_forget()
+            self.initialize_chat()
+        else:
+            messagebox.showerror("Login Error", "Invalid username or password")
+
+    def validate_credentials(self, username, password):
+        # Hardcoded credentials for demo purposes
+        valid_username = "sarthak"
+        valid_password = "softwarica"
+
+        if username == valid_username and password == valid_password:
+            return True
+        else:
+            print(f"Debug: Provided username: '{username}'")
+            print(f"Debug: Provided password: '{password}'")
+            print(f"Debug: Valid username: '{valid_username}'")
+            print(f"Debug: Valid password: '{valid_password}'")
+            return False
+
+    def initialize_chat(self):
+        self.chat_frame = tk.Frame(self.root, bg="#282c34")
+        self.chat_frame.pack(fill="both", expand=True)
+
+        # Header frame with a gradient background
+        self.header_frame = tk.Frame(self.chat_frame, bg="#61dafb", height=50)
+        self.header_frame.pack(fill="x", pady=5)
+
+        self.header_label = tk.Label(self.header_frame, text="Secure Chat", font=("Helvetica", 18, "bold"), bg="#61dafb", fg="#282c34")
+        self.header_label.pack(pady=10)
+
+        # Chat log frame with vibrant color scheme
+        self.chat_log_frame = tk.Frame(self.chat_frame, bg="#282c34")
+        self.chat_log_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.message_display = scrolledtext.ScrolledText(self.chat_log_frame, wrap=tk.WORD, font=("Helvetica", 12), bg="#1e1e1e", fg="#f1f1f1", state="disabled", height=20, borderwidth=5, relief="flat")
+        self.message_display.pack(fill="both", expand=True)
+        self.message_display.tag_configure("user_message", foreground="#61dafb")
+        self.message_display.tag_configure("bot_message", foreground="#e06c75")
+
+        # Input frame with bold color accents
+        self.input_frame = tk.Frame(self.chat_frame, bg="#61dafb", pady=5)
+        self.input_frame.pack(fill="x", padx=10, pady=10)
+
+        self.message_entry = tk.Entry(self.input_frame, font=("Helvetica", 14), bg="#282c34", fg="#ffffff", borderwidth=2, relief="flat", width=30)
+        self.message_entry.pack(side="left", padx=5, pady=10, fill="x", expand=True)
+
+        self.send_button = tk.Button(self.input_frame, text="Send", command=self.send_message, font=("Helvetica", 14, "bold"), bg="#e06c75", fg="#ffffff", activebackground="#c678dd", borderwidth=0)
+        self.send_button.pack(side="right", padx=10, pady=10)
+
+        # Footer with navigation buttons in vibrant colors
+        self.footer_frame = tk.Frame(self.chat_frame, bg="#282c34", height=50)
+        self.footer_frame.pack(side="bottom", fill="x")
+
+        self.home_button = tk.Button(self.footer_frame, text="Home", bg="#98c379", fg="#282c34", font=("Helvetica", 12, "bold"), borderwidth=0, activebackground="#61dafb")
+        self.home_button.pack(side="left", padx=30, pady=5)
+
+        self.profile_button = tk.Button(self.footer_frame, text="Profile", bg="#d19a66", fg="#282c34", font=("Helvetica", 12, "bold"), borderwidth=0, activebackground="#61dafb")
+        self.profile_button.pack(side="right", padx=30, pady=5)
+
+    def send_message(self):
+        message = self.message_entry.get()
+
+        if not message:
+            messagebox.showwarning("Empty Message", "Please enter a message before sending.")
+            return
+
+        cipher_text = f"Encrypted({message})"
+
+        self.message_display.config(state="normal")
+        self.message_display.insert(tk.END, f"You: {message}\n", "user_message")
+        self.message_display.yview(tk.END)
+        self.message_display.config(state="disabled")
+
+        self.message_entry.delete(0, tk.END)
+
+        self.root.after(1000, self.bot_reply, cipher_text)
+
+    def bot_reply(self, cipher_text):
+        bot_response = self.generate_bot_reply(cipher_text)
+
+        self.message_display.config(state="normal")
+        self.message_display.insert(tk.END, f"Bot: {bot_response}\n", "bot_message")
+        self.message_display.yview(tk.END)
+        self.message_display.config(state="disabled")
+
+    def generate_bot_reply(self, cipher_text):
+        responses = [
+            "Hello, How are you?",
+            "Tell me more!",
+            "How can I assist you?",
+            "heyy",
+            "I'm here to help!"
+        ]
+        decrypted_message = decrypt_message(cipher_text, "private_key", "public_key")
+        return f"{random.choice(responses)} (Original: {decrypted_message})"
+
+def generate_key_pair():
+    return "private_key", "public_key"
+
+def encrypt_message(message, private_key, public_key):
+    return f"cipher_{message}"
+
+def decrypt_message(cipher_text, private_key, public_key):
+    return cipher_text.replace("Encrypted(", "").replace(")", "")
+
+root = tk.Tk()
+app = SecureChatApp(root)
+root.mainloop()
